@@ -314,10 +314,6 @@ h2 {
     color: #666;
 }
 
-/* Dashboard specific styles */
-.dashboard-container {
-    /* Add specific container styles if needed */
-}
 
 .metrics-section {
     margin-bottom: 2rem;
@@ -351,9 +347,6 @@ h2 {
     margin-top: 0.3rem;
 }
 
-.projects-list-section {
-    /* Styles for the project list card */
-}
 
 .section-header {
     display: flex;
