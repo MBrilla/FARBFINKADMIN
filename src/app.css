@@ -1,0 +1,493 @@
+#app {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 2rem;
+  text-align: center;
+}
+
+.logo {
+  height: 6em;
+  padding: 1.5em;
+}
+.logo:hover {
+  filter: drop-shadow(0 0 2em #646cffaa);
+}
+.logo.preact:hover {
+  filter: drop-shadow(0 0 2em #673ab8aa);
+}
+
+.card {
+  padding: 2em;
+}
+
+.read-the-docs {
+  color: #888;
+}
+
+/* Remove or comment out the @font-face rule if it exists */
+/* 
+@font-face {
+  font-family: 'Montserrat-Alt1'; 
+  src: url('/fonts/montserratAlt1-Black.ttf') format('truetype'); 
+  font-weight: 900;
+  font-style: normal;
+}
+*/
+
+:root {
+  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  /* Define color variables */
+  --color-primary: #3a7c78; /* Tealish */
+  --color-secondary: #f4a261; /* Orange accent */
+  --color-text: #333333;
+  --color-text-light: #f8f8f8;
+  --color-background: #f4f7f6;
+  --color-card-bg: #ffffff;
+  --color-border: #e0e0e0;
+  --color-input-bg: #ffffff;
+  --color-input-border: #cccccc;
+  --color-error: #d9534f;
+  --color-success: #5cb85c;
+  --shadow-light: 0 2px 5px rgba(0,0,0,0.08);
+  --shadow-medium: 0 4px 10px rgba(0,0,0,0.1);
+
+  color-scheme: light dark;
+  /* Adjust colors for better readability - Light mode example */
+  --admin-text-color: #213547;
+  --admin-bg-color: #ffffff;
+  --admin-input-bg: #f9f9f9;
+  --admin-border-color: #ccc;
+  --admin-button-bg: #3a7c78; /* Using a color from frontend */
+  --admin-button-text: #ffffff;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Apply light mode colors */
+body {
+  margin: 0;
+  background-color: var(--color-background);
+  color: var(--color-text);
+  display: flex;
+  justify-content: center;
+  min-height: 100vh;
+}
+
+#root {
+  max-width: 1200px;
+  margin: 2rem auto;
+  padding: 1rem 2rem; /* Adjusted padding */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Remove default Vite demo styles if they exist */
+.logo, .card, .read-the-docs, #app > div:first-child /* Selectors might need adjustment */ {
+  display: none; /* Hide default demo elements */
+}
+
+/* General styles */
+h1, h2 {
+  color: var(--color-primary);
+  text-align: center;
+}
+h1 {
+  font-size: 2.2em;
+  margin-bottom: 2rem;
+}
+h2 {
+  font-size: 1.8em;
+  margin-bottom: 1.5rem;
+}
+
+/* Card styling */
+.card-style {
+    background-color: var(--color-card-bg);
+    padding: 1.5rem 2rem;
+    border-radius: 8px;
+    box-shadow: var(--shadow-light);
+    margin-bottom: 2rem;
+}
+
+/* Button base styles */
+.button {
+    background-color: var(--color-primary);
+    color: var(--color-text-light);
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    font-weight: 600;
+    text-decoration: none;
+    display: inline-block;
+    transition: background-color 0.2s ease, opacity 0.2s ease;
+    text-align: center;
+}
+
+.button:hover {
+    opacity: 0.85;
+}
+
+.button:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* Specific button types */
+.add-button {
+    background-color: var(--color-success);
+}
+.edit-button {
+    background-color: var(--color-secondary);
+    color: var(--color-text);
+}
+.delete-button {
+    background-color: var(--color-error);
+}
+.submit-button {
+    /* Uses default primary color */
+    padding: 0.8rem 1.5rem;
+    font-size: 1rem;
+    margin-top: 1rem; /* Add space above submit */
+}
+
+/* Form specific styles */
+.project-form {
+    max-width: 750px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.project-form h2 {
+    margin-top: 0;
+}
+
+.form-group {
+    margin-bottom: 1.2rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.4rem;
+    font-weight: 600;
+    font-size: 0.9rem;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group input[type="file"] {
+    width: 100%;
+    padding: 0.7rem 0.9rem;
+    border: 1px solid var(--color-input-border);
+    border-radius: 4px;
+    background-color: var(--color-input-bg);
+    color: var(--color-text);
+    box-sizing: border-box;
+    font-size: 1rem;
+    transition: border-color 0.2s ease;
+}
+
+.form-group input[type="text"]:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: var(--color-primary);
+}
+
+.form-group textarea {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-group input[type="file"] {
+    padding: 0.4rem; /* Adjust file input padding */
+}
+
+/* Checkbox styling */
+.checkbox-group {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 0.5rem 1rem;
+    margin-top: 0.5rem;
+    border: 1px solid var(--color-border);
+    padding: 1rem;
+    border-radius: 4px;
+}
+
+.checkbox-item {
+    display: flex;
+    align-items: center;
+}
+
+.checkbox-item input[type="checkbox"] {
+    margin-right: 0.6rem;
+    accent-color: var(--color-primary);
+    width: 16px;
+    height: 16px;
+}
+
+.checkbox-item label {
+    margin-bottom: 0; /* Override default label margin */
+    font-weight: 500;
+}
+
+/* Form row for side-by-side inputs */
+.form-row {
+    display: flex;
+    gap: 1.5rem;
+    margin-bottom: 1.2rem;
+}
+
+.form-row .form-group {
+    flex: 1;
+    margin-bottom: 0; /* Remove bottom margin inside row */
+}
+
+/* Image preview styles */
+.image-preview {
+    margin-top: 0.8rem;
+    margin-bottom: 0.5rem;
+    padding: 0.8rem;
+    background-color: #f8f8f8;
+    border: 1px dashed var(--color-border);
+    border-radius: 4px;
+    font-size: 0.9rem;
+}
+
+.image-preview img {
+    max-width: 100px;
+    max-height: 100px;
+    margin-right: 10px;
+    vertical-align: middle;
+    border-radius: 3px;
+    border: 1px solid var(--color-border);
+}
+
+.image-preview span {
+    vertical-align: middle;
+    color: #555;
+}
+
+.gallery-preview img {
+    max-width: 70px;
+    max-height: 70px;
+    margin-bottom: 5px; /* Add space below gallery images */
+}
+
+.gallery-preview br + span { /* Style text after the <br> */
+    display: block;
+    margin-top: 0.5rem;
+    font-style: italic;
+}
+
+/* Message styles */
+.message {
+    text-align: center;
+    font-weight: 600;
+    margin-top: 1.5rem;
+    padding: 0.8rem;
+    border-radius: 4px;
+}
+
+.message.success {
+    color: var(--color-success);
+    background-color: #e4f7e4;
+    border: 1px solid var(--color-success);
+}
+
+.message.error {
+    color: var(--color-error);
+    background-color: #fdecea;
+    border: 1px solid var(--color-error);
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.5rem;
+    font-size: 0.85rem;
+    color: #666;
+}
+
+/* Dashboard specific styles */
+.dashboard-container {
+    /* Add specific container styles if needed */
+}
+
+.metrics-section {
+    margin-bottom: 2rem;
+}
+
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    gap: 1.5rem;
+}
+
+.metrics-grid > div {
+    background-color: #f8f9fa;
+    padding: 1rem;
+    border-radius: 5px;
+    text-align: center;
+    border: 1px solid var(--color-border);
+}
+
+.metric-value {
+    display: block;
+    font-size: 2em;
+    font-weight: 700;
+    color: var(--color-primary);
+}
+
+.metric-label {
+    display: block;
+    font-size: 0.9em;
+    color: #555;
+    margin-top: 0.3rem;
+}
+
+.projects-list-section {
+    /* Styles for the project list card */
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem; /* Increased space */
+}
+
+.section-header h2 {
+    margin-bottom: 0;
+    text-align: left;
+}
+
+/* Table styling */
+.projects-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.projects-table th,
+.projects-table td {
+    border: 1px solid var(--color-border);
+    padding: 0.8rem 1rem;
+    text-align: left;
+    vertical-align: middle;
+}
+
+.projects-table th {
+    background-color: #f1f3f5;
+    font-weight: 600;
+}
+
+.projects-table tr:nth-child(even) {
+    background-color: #f8f9fa;
+}
+
+.projects-table img {
+    display: block; /* Prevent extra space below image */
+    border-radius: 3px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 0.5rem; /* Space between buttons */
+    white-space: nowrap; /* Prevent wrapping */
+}
+
+.action-buttons .button {
+    padding: 0.4rem 0.8rem; /* Smaller buttons in table */
+    font-size: 0.85rem;
+}
+
+/* Add Project / Edit Project Page Specific */
+/* Link back to dashboard */
+.edit-page-link-back,
+.add-page-link-back { /* Assuming you add this class or similar */
+    display: inline-block;
+    margin-bottom: 1.5rem;
+    color: var(--color-primary);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.edit-page-link-back:hover,
+.add-page-link-back:hover {
+    text-decoration: underline;
+}
+
+/* Basic responsiveness */
+@media (max-width: 768px) {
+    #root {
+        padding: 1rem;
+    }
+    .card-style {
+        padding: 1rem 1.5rem;
+    }
+    h1 {
+        font-size: 1.8em;
+    }
+    h2 {
+        font-size: 1.5em;
+    }
+    .form-row {
+        flex-direction: column;
+        gap: 0; /* Remove gap when stacked */
+        margin-bottom: 0;
+    }
+    .form-row .form-group {
+        margin-bottom: 1.2rem; /* Add margin back when stacked */
+    }
+    .projects-table th,
+    .projects-table td {
+        padding: 0.6rem 0.8rem;
+    }
+    .action-buttons {
+        flex-direction: column; /* Stack buttons on small screens */
+        align-items: flex-start;
+    }
+    .action-buttons .button {
+        width: 100%; /* Make buttons full width when stacked */
+        box-sizing: border-box;
+    }
+    .checkbox-group {
+        grid-template-columns: 1fr; /* Stack checkboxes */
+    }
+}
+
+@media (max-width: 480px) {
+    h1 {
+        font-size: 1.6em;
+    }
+    .button {
+        padding: 0.5rem 1rem;
+        font-size: 0.9rem;
+    }
+     .projects-table th,
+     .projects-table td {
+        padding: 0.5rem;
+        font-size: 0.9rem;
+    }
+     .action-buttons .button {
+        font-size: 0.8rem;
+        padding: 0.5rem;
+    }
+}
+
+/* Ensure existing rules are not overridden negatively */
+/* Comment out conflicting base styles if necessary */
+/*
+body {
+  place-items: center;
+  min-width: 320px;
+}
+*/
+
+/* Add any other specific overrides if needed */
