@@ -100,13 +100,13 @@ const ProjectForm = () => {
   
   // Handle form input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    const { name, value } = e.target;
+    const { name, value } = e.target as HTMLInputElement | HTMLTextAreaElement;
     setFormData(prev => ({ ...prev, [name]: value }));
   };
   
   // Handle category checkbox changes
   const handleCategoryChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { value, checked } = e.target;
+    const { value, checked } = e.target as HTMLInputElement;
     setFormData(prev => ({
       ...prev,
       categories: checked

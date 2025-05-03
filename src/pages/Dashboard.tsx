@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { supabase, supabaseAdmin } from '../lib/supabase';
+import { Project, CATEGORIES } from '../lib/types';
 import { 
   PencilIcon, 
   TrashIcon, 
@@ -10,20 +11,6 @@ import {
   ExclamationCircleIcon 
 } from '@heroicons/react/24/outline';
 
-// Types
-type Project = {
-  id: string;
-  title: string;
-  description: string;
-  categories: string[];
-  image: string | null;
-  images: string[] | null;
-  created_at: string;
-  kunde: string;
-  standort: string;
-  datum: string;
-};
-
 const Dashboard = () => {
   const [projects, setProjects] = useState<Project[]>([]);
   const [loading, setLoading] = useState(true);
@@ -31,29 +18,37 @@ const Dashboard = () => {
   const [projectCount, setProjectCount] = useState(0);
   const [imageCount, setImageCount] = useState(0);
 
-  useEffect(() => {
-    fetchProjects();
-  }, []);
-
   // Fetch projects from Supabase
   const fetchProjects = async () => {
-    setLoading(true);
-    setError(null);
-    
     try {
+      setLoading(true);
+      setError(null);
+      console.log('Fetching projects...');
+      
       const { data, error } = await supabase
         .from('projects')
         .select('*')
         .order('created_at', { ascending: false });
       
+      console.log('Fetch response:', { data, error });
+      
       if (error) throw error;
       
-      setProjects(data || []);
-      setProjectCount(data?.length || 0);
+      // Format arrays just in case
+      const formattedData = data?.map(project => ({
+        ...project,
+        categories: Array.isArray(project.categories) ? project.categories : [],
+        images: Array.isArray(project.images) ? project.images : []
+      })) || [];
+      
+      console.log('Formatted data:', formattedData);
+      
+      setProjects(formattedData);
+      setProjectCount(formattedData.length);
       
       // Calculate total images
       let totalImages = 0;
-      data?.forEach((project: Project) => {
+      formattedData.forEach((project: Project) => {
         if (project.image) totalImages++;
         if (project.images) totalImages += project.images.length;
       });
@@ -69,6 +64,10 @@ const Dashboard = () => {
     }
   };
 
+  useEffect(() => {
+    fetchProjects();
+  }, []);
+
   // Format date for display
   const formatDate = (dateString: string) => {
     return new Date(dateString).toLocaleDateString('de-DE', {
@@ -80,15 +79,8 @@ const Dashboard = () => {
 
   // Helper to get category label
   const getCategoryLabel = (categoryId: string) => {
-    const categories: Record<string, string> = {
-      'energiestationen': 'ENERGIESTATIONEN',
-      'fassaden': 'FASSADEN',
-      'innenraume': 'INNENRÄUME',
-      'objekte': 'OBJEKTE',
-      'leinwande': 'LEINWÄNDE'
-    };
-    
-    return categories[categoryId] || categoryId;
+    const category = CATEGORIES.find(c => c.id === categoryId);
+    return category ? category.label : categoryId;
   };
 
   // Handle project deletion
@@ -97,16 +89,14 @@ const Dashboard = () => {
       return;
     }
 
-    setLoading(true);
-    
     try {
+      setLoading(true);
+      
       // First, find the project to get image URLs
       const project = projects.find(p => p.id === id);
-      if (!project) {
-        throw new Error('Projekt nicht gefunden');
-      }
+      if (!project) throw new Error('Projekt nicht gefunden');
       
-      // Extract image paths from URLs for deletion later
+      // Extract image paths from URLs for deletion
       const imagesToDelete = [];
       
       if (project.image) {
@@ -119,7 +109,7 @@ const Dashboard = () => {
         }
       }
       
-      if (project.images && project.images.length > 0) {
+      if (project.images?.length) {
         for (const imageUrl of project.images) {
           try {
             const url = new URL(imageUrl);
@@ -132,48 +122,28 @@ const Dashboard = () => {
       }
       
       // Delete project from database using admin client
-      const { data, error } = await supabaseAdmin
+      const { error: deleteError } = await supabaseAdmin
         .from('projects')
         .delete()
-        .eq('id', id)
-        .select();
-        
-      console.log('Delete result:', data);
+        .eq('id', id);
       
-      if (error) {
-        if (error.code === '42501' || error.message.includes('permission')) {
-          throw new Error('Keine Berechtigung zum Löschen des Projekts');
-        } else if (error.code === '23503') {
-          throw new Error('Projekt kann nicht gelöscht werden, da es von anderen Einträgen referenziert wird');
-        } else {
-          throw error;
-        }
-      }
+      if (deleteError) throw deleteError;
       
-      // Try to delete images from storage using admin client
+      // Try to delete images from storage
       if (imagesToDelete.length > 0) {
-        try {
-          const { error: storageError } = await supabaseAdmin.storage
-            .from('project-images')
-            .remove(imagesToDelete);
-            
-          if (storageError) {
-            console.warn('Failed to delete some image files:', storageError);
-          }
-        } catch (storageErr) {
-          console.warn('Error when deleting project images:', storageErr);
+        const { error: storageError } = await supabaseAdmin.storage
+          .from('project-images')
+          .remove(imagesToDelete);
+          
+        if (storageError) {
+          console.warn('Failed to delete some image files:', storageError);
         }
       }
       
       // Update UI
       setProjects(projects.filter(p => p.id !== id));
       setProjectCount(prev => prev - 1);
-      
-      // Update image count
-      let imagesRemoved = 0;
-      if (project.image) imagesRemoved++;
-      if (project.images) imagesRemoved += project.images.length;
-      setImageCount(prev => prev - imagesRemoved);
+      setImageCount(prev => prev - (1 + (project.images?.length || 0)));
       
       toast.success('Projekt erfolgreich gelöscht');
       
@@ -187,21 +157,21 @@ const Dashboard = () => {
   };
 
   return (
-    <div>
+    <div className="p-6">
       {/* Dashboard header */}
       <div className="mb-6 flex justify-between items-center">
         <h1 className="text-2xl font-bold text-gray-900">Admin Dashboard</h1>
         <div className="flex gap-2">
           <button 
             onClick={fetchProjects} 
-            className="btn btn-secondary flex items-center"
+            className="btn btn-secondary flex items-center gap-2"
             disabled={loading}
           >
-            <ArrowPathIcon className={`h-5 w-5 mr-1 ${loading ? 'animate-spin' : ''}`} />
+            <ArrowPathIcon className={`h-5 w-5 ${loading ? 'animate-spin' : ''}`} />
             Aktualisieren
           </button>
-          <Link to="/add" className="btn btn-primary flex items-center">
-            <PlusIcon className="h-5 w-5 mr-1" />
+          <Link to="/add" className="btn btn-primary flex items-center gap-2">
+            <PlusIcon className="h-5 w-5" />
             Neues Projekt
           </Link>
         </div>
@@ -209,19 +179,19 @@ const Dashboard = () => {
 
       {/* Stats cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-        <div className="card bg-white p-5">
-          <div className="font-medium text-gray-500 text-sm mb-1">Projekte</div>
-          <div className="text-3xl font-bold">{projectCount}</div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="text-sm font-medium text-gray-500">Projekte</div>
+          <div className="mt-2 text-3xl font-bold">{projectCount}</div>
         </div>
         
-        <div className="card bg-white p-5">
-          <div className="font-medium text-gray-500 text-sm mb-1">Bilder gesamt</div>
-          <div className="text-3xl font-bold">{imageCount}</div>
+        <div className="bg-white rounded-lg shadow p-6">
+          <div className="text-sm font-medium text-gray-500">Bilder gesamt</div>
+          <div className="mt-2 text-3xl font-bold">{imageCount}</div>
         </div>
       </div>
       
-      {/* Projects table */}
-      <div className="card bg-white">
+      {/* Projects section */}
+      <div className="bg-white rounded-lg shadow">
         <div className="px-6 py-4 border-b border-gray-200">
           <h2 className="text-lg font-medium text-gray-900">Projekte verwalten</h2>
         </div>
@@ -229,7 +199,7 @@ const Dashboard = () => {
         {/* Loading state */}
         {loading && (
           <div className="flex justify-center items-center py-12">
-            <ArrowPathIcon className="h-8 w-8 text-primary-500 animate-spin" />
+            <ArrowPathIcon className="h-8 w-8 text-blue-500 animate-spin" />
             <span className="ml-2 text-gray-600">Lade Projekte...</span>
           </div>
         )}
@@ -247,8 +217,8 @@ const Dashboard = () => {
           <div className="flex flex-col items-center justify-center py-12 px-6 text-center">
             <ExclamationCircleIcon className="h-12 w-12 text-gray-400 mb-4" />
             <p className="text-gray-500 mb-6">Noch keine Projekte vorhanden.</p>
-            <Link to="/add" className="btn btn-primary flex items-center">
-              <PlusIcon className="h-5 w-5 mr-1" />
+            <Link to="/add" className="btn btn-primary flex items-center gap-2">
+              <PlusIcon className="h-5 w-5" />
               Neues Projekt hinzufügen
             </Link>
           </div>
@@ -260,11 +230,21 @@ const Dashboard = () => {
             <table className="min-w-full divide-y divide-gray-200">
               <thead className="bg-gray-50">
                 <tr>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">Bild</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Titel</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Kategorien</th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">Datum</th>
-                  <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Aktionen</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider w-16">
+                    Bild
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Titel
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    Kategorien
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider hidden md:table-cell">
+                    Datum
+                  </th>
+                  <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    Aktionen
+                  </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
@@ -291,8 +271,11 @@ const Dashboard = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap hidden md:table-cell">
                       <div className="flex flex-wrap gap-1">
-                        {project.categories?.map((cat: string) => (
-                          <span key={cat} className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-primary-100 text-primary-800">
+                        {project.categories?.map(cat => (
+                          <span 
+                            key={cat} 
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                          >
                             {getCategoryLabel(cat)}
                           </span>
                         ))}
@@ -305,15 +288,15 @@ const Dashboard = () => {
                       <div className="flex justify-end space-x-2">
                         <Link 
                           to={`/edit/${project.id}`} 
-                          className="text-primary-600 hover:text-primary-900 bg-primary-50 p-1.5 rounded"
-                          aria-label="Edit project"
+                          className="text-blue-600 hover:text-blue-900 bg-blue-50 p-1.5 rounded"
+                          title="Projekt bearbeiten"
                         >
                           <PencilIcon className="h-5 w-5" />
                         </Link>
                         <button
                           onClick={() => handleDelete(project.id, project.title)}
                           className="text-red-600 hover:text-red-900 bg-red-50 p-1.5 rounded"
-                          aria-label="Delete project"
+                          title="Projekt löschen"
                         >
                           <TrashIcon className="h-5 w-5" />
                         </button>
